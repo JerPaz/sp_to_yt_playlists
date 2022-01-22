@@ -1,9 +1,3 @@
-import re
-from tabnanny import check
-from urllib import request
-from xmlrpc.client import Boolean
-from os import name
-
 def get_existing_playlists(in_spotify_playlists_dict, youtube_obj):
     spotify_playlists_dict = in_spotify_playlists_dict
     youtube = youtube_obj
@@ -37,7 +31,6 @@ def check_playlist_exist(check_playlist, existing_playlists):
     else:
         return False
 
-# TODO change public/private settings to unlisted for playlists
 def create_playlist(spot_playlist, in_existing_playlists, youtube_obj):
     existing_playlists = in_existing_playlists
     youtube = youtube_obj
@@ -57,7 +50,7 @@ def create_playlist(spot_playlist, in_existing_playlists, youtube_obj):
         response = request.execute()
         return_value = {'id': response['id'], 
                         'title': response['snippet']['title'],
-                        'total_videos': 0, #response['contentDetails']['itemCount'],
+                        'total_videos': 0,
                         'spotify_playlist': spot_playlist}
         existing_playlists[return_value['title']] = return_value
         return return_value
