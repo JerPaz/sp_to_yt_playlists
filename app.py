@@ -19,7 +19,7 @@ def spot_playlist_tracks(spotify_playlist_name):
     single_playlist_dict = {'playlist_title': spotify_playlist_name, 'items': []}
 
     index = 0
-    while index < 5:
+    while index < 10:
         song = spot_all_playlists_name_tracks_dict[spotify_playlist_name][index][0]
         artist = spot_all_playlists_name_tracks_dict[spotify_playlist_name][index][1]
         s = Search('{} {}'.format(song, artist))
@@ -36,7 +36,9 @@ def spot_playlist_tracks(spotify_playlist_name):
     
     return single_playlist_dict
 
+spotify_playlists_dict = {}
 k_music_spotify_playlist = spot_playlist_tracks('K-Music')
+spotify_playlists_dict[k_music_spotify_playlist['playlist_title']] = k_music_spotify_playlist
 print(k_music_spotify_playlist)
 
 # TODO change authentication so as not to login everytime
@@ -64,7 +66,9 @@ def get_existing_playlists(response_obj):
         playlist_details = {'id': playlist_id, 
                             'title': playlist_title,
                             'total_videos': playlist_total_videos,
-                            'spotify_playlist': None}
+                            'spotify_playlist': None} # THE PROBLEM IS RIGHT HERE
+        if playlist_details['title'] in spotify_playlists_dict:
+            playlist_details['spotify_playlist'] = spotify_playlists_dict[playlist_details['title']]
         exisiting_playlists[playlist_title] = playlist_details
         print(playlist_id, playlist_title, playlist_total_videos)
     
@@ -98,13 +102,19 @@ def create_playlist(spot_playlist):
             }
         )
         response = request.execute()
-        return {'id': response['id'], 
-                'title': response['snippet']['title'],
-                'total_videos': 0, #response['contentDetails']['itemCount'],
-                'spotify_playlist': spot_playlist}
+        return_value = {'id': response['id'], 
+                        'title': response['snippet']['title'],
+                        'total_videos': 0, #response['contentDetails']['itemCount'],
+                        'spotify_playlist': spot_playlist}
+        existing_playlists[return_value['title']] = return_value
+        return return_value
+    else:
+        return existing_playlists[spot_playlist['playlist_title']]
 
-k_music_yt_playlist = create_playlist(k_music_spotify_playlist)
-existing_playlists[k_music_yt_playlist['title']] = (k_music_yt_playlist)
+
+create_playlist(k_music_spotify_playlist)
+#k_music_yt_playlist = create_playlist(k_music_spotify_playlist)
+#existing_playlists[k_music_yt_playlist['title']] = (k_music_yt_playlist)
 
 def insert_tracks(yt_playlist):
     request_item_list = youtube.playlistItems().list(
@@ -113,28 +123,36 @@ def insert_tracks(yt_playlist):
     )
     response_item_list = request_item_list.execute()
     exisiting_tracks_id_only = []
-
-    for i in range(len(response_item_list['items'])):
-        check_against = response_item_list['items'][i]['snippet']['resourceId']['videoId']
-        exisiting_tracks_id_only.append(check_against)
-
-    for i in range(len(yt_playlist['spotify_playlist']['items'])):
-        yt_playlist_id = yt_playlist['id']
-        yt_video_id = yt_playlist['spotify_playlist']['items'][i]['video_id']
-        if yt_video_id not in exisiting_tracks_id_only:
-            request = youtube.playlistItems().insert(
-                part="snippet",
-                body={
-                    "snippet": {
-                    "playlistId": yt_playlist_id,
-                    "resourceId": {
-                        "kind": "youtube#video",
-                        "videoId": yt_video_id
+    curr_num_items = response_item_list['pageInfo']['totalResults']
+    # for i in range(len(response_item_list['items'])):
+    #     check_against = response_item_list['items'][i]['snippet']['resourceId']['videoId']
+    #     exisiting_tracks_id_only.append(check_against)
+    
+    print(yt_playlist['spotify_playlist']['items'])
+    if curr_num_items < len(yt_playlist['spotify_playlist']['items']):
+        i = curr_num_items
+        while i < len(yt_playlist['spotify_playlist']['items']):
+            yt_playlist_id = yt_playlist['id']
+            yt_video_id = yt_playlist['spotify_playlist']['items'][i]['video_id']
+            if yt_video_id not in exisiting_tracks_id_only:
+                print(yt_playlist['spotify_playlist']['items'][i]['song'], 
+                    yt_playlist['spotify_playlist']['items'][i]['video_id'])
+                request = youtube.playlistItems().insert(
+                    part="snippet",
+                    body={
+                        "snippet": {
+                        "playlistId": yt_playlist_id,
+                        "resourceId": {
+                            "kind": "youtube#video",
+                            "videoId": yt_video_id
+                        }
+                        }
                     }
-                    }
-                }
-            )
-        request.execute()
+                )
+            request.execute()
+            i += 1
+    else:
+        print("ALL TRACKS IN PLAYLIST")
 
 insert_tracks(existing_playlists['K-Music'])
 
