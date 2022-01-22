@@ -2,3 +2,5 @@
 __pycache__
 config.py
 client_secrets.json
+test_playlist.py
+012222_output.txt
