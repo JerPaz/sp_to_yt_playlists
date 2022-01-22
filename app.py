@@ -7,11 +7,12 @@ from googleapiclient.discovery import build
 
 def main():
 
-    in_single_spotify_playlist = spotify_script.spot_playlist_tracks('K-Music', 
-        spot_all_playlists_name_tracks_dict, 
-        len(spot_all_playlists_name_tracks_dict['K-Music']))
+    in_single_spotify_playlist = spotify_script.spot_playlist_tracks('K-Music Test', 
+        spot_all_playlists_name_tracks_dict, len(spot_all_playlists_name_tracks_dict['K-Music']))
+    # Debug variable for for quicker calls
+    test_playlist.called_spot_playlist = in_single_spotify_playlist
 
-    # Use this variable when testing and close debug to skip wait for API pytube calls
+    # Use this variable instead of the above when testing to skip wait for API pytube calls
     # in_single_spotify_playlist = test_playlist.called_spot_playlist
 
     youtube = login_authenticate()

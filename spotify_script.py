@@ -1,7 +1,7 @@
 import config
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from pytube import YouTube, Playlist, Search
+from pytube import Search
 
 def main():
     auth_manager = SpotifyClientCredentials(config.SPOTIPY_CLIENT_ID, config.SPOTIPY_CLIENT_SECRET)
@@ -14,6 +14,7 @@ def main():
         curr_playlist = playlists['items'][i]
         playlists_names_id_dict[curr_playlist['name']] = curr_playlist['id']
         all_playlists_name_tracks_dict[curr_playlist['name']] = []
+    print(all_playlists_name_tracks_dict)
 
     # Very slightly modified, but humongous credit to this stack overflow post: 
     # https://stackoverflow.com/questions/39086287/spotipy-how-to-read-more-than-100-tracks-from-a-playlist
@@ -36,8 +37,6 @@ def main():
     return all_playlists_name_tracks_dict
 
 # Only for single playlist
-# TODO after testing, change from limit of 5 to all songs in playlist
-# TODO also after testing, change from single to all playlist (maybe?)
 def spot_playlist_tracks(spotify_playlist_name, in_all_playlists_name_tracks_dict, num_songs):
     all_playlists_name_tracks_dict = in_all_playlists_name_tracks_dict
 
@@ -47,7 +46,10 @@ def spot_playlist_tracks(spotify_playlist_name, in_all_playlists_name_tracks_dic
     print('num songs= {}'.format(num_songs))
     index = 0
     while index < num_songs:
-        song = spot_all_playlists_name_tracks_dict[spotify_playlist_name][index][0]
+        try:
+            song = spot_all_playlists_name_tracks_dict[spotify_playlist_name][index][0]
+        except Exception as e:
+            print("CANNOT FIND PLAYLIST // Exception e: {}".format(e))
         artist = spot_all_playlists_name_tracks_dict[spotify_playlist_name][index][1]
         s = Search('{} {}'.format(song, artist))
         first_result = s.results[0]

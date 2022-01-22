@@ -23,11 +23,12 @@ def get_existing_playlists(in_spotify_playlists_dict, youtube_obj):
         playlist_details = {'id': playlist_id, 
                             'title': playlist_title,
                             'total_videos': playlist_total_videos,
-                            'spotify_playlist': None} # THE PROBLEM IS RIGHT HERE
+                            'spotify_playlist': None}
         if playlist_details['title'] in spotify_playlists_dict:
             playlist_details['spotify_playlist'] = spotify_playlists_dict[playlist_details['title']]
         exisiting_playlists[playlist_title] = playlist_details
-        print(playlist_id, playlist_title, playlist_total_videos)
+        print("Playlist ID: {}, Playlist Title: {}, Playlist Total Items: {}".format(
+            playlist_id, playlist_title, playlist_total_videos))
     return exisiting_playlists
 
 def check_playlist_exist(check_playlist, existing_playlists):
@@ -36,21 +37,20 @@ def check_playlist_exist(check_playlist, existing_playlists):
     else:
         return False
 
-#existing_playlists = get_existing_playlists()
-
-# TODO update exisiting playlist values once tracks are inserted into playlist
 # TODO change public/private settings to unlisted for playlists
-
 def create_playlist(spot_playlist, in_existing_playlists, youtube_obj):
     existing_playlists = in_existing_playlists
     youtube = youtube_obj
     playlist_name = spot_playlist['playlist_title']
     if check_playlist_exist(playlist_name, existing_playlists) == False:
         request = youtube.playlists().insert(
-            part='snippet',
+            part='snippet, status',
             body={
                 'snippet': {
                 'title': playlist_name
+                },
+                'status': {
+                    'privacyStatus': 'unlisted'
                 }
             }
         )
@@ -63,11 +63,6 @@ def create_playlist(spot_playlist, in_existing_playlists, youtube_obj):
         return return_value
     else:
         return existing_playlists[spot_playlist['playlist_title']]
-
-
-#create_playlist(k_music_spotify_playlist)
-#k_music_yt_playlist = create_playlist(k_music_spotify_playlist)
-#existing_playlists[k_music_yt_playlist['title']] = (k_music_yt_playlist)
 
 def insert_tracks(yt_playlist, youtube_obj):
     youtube = youtube_obj
@@ -87,13 +82,13 @@ def insert_tracks(yt_playlist, youtube_obj):
                 print("Song Inserted: {}, Video ID: {}".format(yt_playlist['spotify_playlist']['items'][i]['song'], 
                     yt_playlist['spotify_playlist']['items'][i]['video_id']))
                 request = youtube.playlistItems().insert(
-                    part="snippet",
+                    part='snippet',
                     body={
-                        "snippet": {
-                        "playlistId": yt_playlist_id,
-                        "resourceId": {
-                            "kind": "youtube#video",
-                            "videoId": yt_video_id
+                        'snippet': {
+                        'playlistId': yt_playlist_id,
+                        'resourceId': {
+                            'kind': 'youtube#video',
+                            'videoId': yt_video_id
                         }
                         }
                     }
@@ -102,8 +97,6 @@ def insert_tracks(yt_playlist, youtube_obj):
             i += 1
     else:
         print("ALL TRACKS IN PLAYLIST")
-
-#insert_tracks(existing_playlists['K-Music'])
 
 def delete_playlist(yt_playlist, youtube_obj):
     youtube = youtube_obj
