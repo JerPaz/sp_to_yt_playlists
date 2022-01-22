@@ -16,6 +16,6 @@ Need to create a config.py file with the following info:
 2. SPOTIPY_CLIENT_ID (found on the Spotify web dev dashboard)
 3. SPOTIPY_CLIENT_SECRET (also found on the Spotify web dev dashboard, be careful with this)
 
-Need to obtain a JSON file with client information
+Need to obtain a JSON file with client information:
 ---------------------------------------------------
 * Found on the Google Cloud Platform API Console after creating a project
