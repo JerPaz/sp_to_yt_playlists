@@ -4,42 +4,9 @@ from urllib import request
 from xmlrpc.client import Boolean
 import spotify_script
 from os import name
-from pytube import YouTube, Playlist, Search
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
-
-spot_playlists_names_id_dict = spotify_script.playlists_names_id_dict
-spot_all_playlists_name_tracks_dict = spotify_script.all_playlists_name_tracks_dict
-
-# Only for single playlist
-# TODO after testing, change from limit of 5 to all songs in playlist
-# TODO also after testing, change from single to all playlist (maybe?)
-def spot_playlist_tracks(spotify_playlist_name):
-    single_playlist_dict = {'playlist_title': spotify_playlist_name, 'items': []}
-
-    index = 0
-    while index < 10:
-        song = spot_all_playlists_name_tracks_dict[spotify_playlist_name][index][0]
-        artist = spot_all_playlists_name_tracks_dict[spotify_playlist_name][index][1]
-        s = Search('{} {}'.format(song, artist))
-        first_result = s.results[0]
-        yt_video_url = first_result.watch_url
-        video_id = yt_video_url[yt_video_url.find('v=')+2:]
-        print(video_id)
-        print(yt_video_url)
-        single_playlist_dict['items'].append({'song': song, 
-                                     'artist': artist,
-                                     'yt_video_url': yt_video_url,
-                                     'video_id': video_id,})
-        index+=1
-    
-    return single_playlist_dict
-
-spotify_playlists_dict = {}
-k_music_spotify_playlist = spot_playlist_tracks('K-Music')
-spotify_playlists_dict[k_music_spotify_playlist['playlist_title']] = k_music_spotify_playlist
-print(k_music_spotify_playlist)
 
 # TODO change authentication so as not to login everytime
 flow = InstalledAppFlow.from_client_secrets_file(
@@ -47,16 +14,22 @@ flow = InstalledAppFlow.from_client_secrets_file(
     scopes=["https://www.googleapis.com/auth/youtube.force-ssl"])
 flow.run_local_server(port=8080, prompt='consent')
 credentials = flow.credentials
-
 youtube = build("youtube", "v3", credentials=credentials)
-request_playlist_list = youtube.playlists().list(
-    part="snippet, contentDetails", 
-    maxResults=5, 
-    mine=True)
-response_exisiting_playlists = request_playlist_list.execute()
 
-def get_existing_playlists(response_obj):
+
+spotify_playlists_dict = {}
+k_music_spotify_playlist = spotify_script.spot_playlist_tracks('K-Music')
+spotify_playlists_dict[k_music_spotify_playlist['playlist_title']] = k_music_spotify_playlist
+print(k_music_spotify_playlist)
+
+def get_existing_playlists():
     exisiting_playlists = {}
+
+    request_playlist_list = youtube.playlists().list(
+        part="snippet, contentDetails", 
+        maxResults=10, 
+        mine=True)
+    response_obj = request_playlist_list.execute()
 
     for i in range(len(response_obj['items'])):
         curr_yt_existing_playlist = response_obj['items'][i]
@@ -80,13 +53,10 @@ def check_playlist_exist(check_playlist, existing_playlists):
     else:
         return False
 
-existing_playlists = get_existing_playlists(response_exisiting_playlists)
-print('K-Music exist: {}'.format(check_playlist_exist('K-Music', existing_playlists)))
-print('dummy_playlist: {}'.format(check_playlist_exist('dummy_playlist', existing_playlists)))
+existing_playlists = get_existing_playlists()
 
 # IT WORKS (with a huge astreik; aka as long as the playlist does not exist)
-# TODO check if playlist exist, if so, check if it has all songs; if not, then repopulate playlist with correct tracks
-# TODO update exisitng playlist values once tracks are inserted into playlist
+# TODO update exisiting playlist values once tracks are inserted into playlist
 # TODO change public/private settings to unlisted for playlists
 # TODO make the code more readable (probably separate into separate python file and have app.py as running the functions and main calls)
 
@@ -124,11 +94,6 @@ def insert_tracks(yt_playlist):
     response_item_list = request_item_list.execute()
     exisiting_tracks_id_only = []
     curr_num_items = response_item_list['pageInfo']['totalResults']
-    # for i in range(len(response_item_list['items'])):
-    #     check_against = response_item_list['items'][i]['snippet']['resourceId']['videoId']
-    #     exisiting_tracks_id_only.append(check_against)
-    
-    print(yt_playlist['spotify_playlist']['items'])
     if curr_num_items < len(yt_playlist['spotify_playlist']['items']):
         i = curr_num_items
         while i < len(yt_playlist['spotify_playlist']['items']):
