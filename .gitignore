@@ -5,3 +5,4 @@ client_secrets.json
 test_playlist.py
 012222_output.txt
 yt_response_examples.txt
+token.pickle
