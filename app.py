@@ -6,11 +6,11 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 
-def main():
+def main(youtube_obj):
     in_single_spotify_playlist = spotify_script.spot_playlist_tracks('K-Music Test', 
         spot_all_playlists_name_tracks_dict, 5) #len(spot_all_playlists_name_tracks_dict['K-Music']))
 
-    youtube = login_authenticate()
+    youtube = youtube_obj
 
     spotify_playlists_dict = {}
     spotify_playlists_dict[in_single_spotify_playlist['playlist_title']] = in_single_spotify_playlist
@@ -60,4 +60,4 @@ def login_authenticate():
 
 if __name__ == '__main__':
     spot_all_playlists_name_tracks_dict = spotify_script.main()
-    main()
+    main(login_authenticate())
