@@ -40,6 +40,7 @@ def callback():
     id_info = id_token.verify_oauth2_token(credentials._id_token, 
         google_requests.Request(session=cached_session), audience=config.GOOGLE_CLIENT_ID)
     session["google_id"] = id_info.get("sub")
+    flash('Login Success', 'alert-success')
     return redirect("/user")
 
 def protect_user_page(function):
@@ -53,13 +54,20 @@ def protect_user_page(function):
 @app.route("/user")
 @protect_user_page
 def user_area():
-    return "<h1>User area: {}</h1>".format(session["google_id"])
+    return render_template('/user.html', google_id=session['google_id'])
+
+@app.route("/build_yt")
+def build_yt():
+    youtube = build("youtube", "v3", credentials=flow.credentials)
+    print(youtube)
+    return "<h1>Built YOUTUBE successfully :)</h1>"
 
 @app.route("/logout")
 def logout():
     session.clear()
+    print("cleared")
     flash('You were logged out', 'alert-success')
-    return redirect('/home')
+    return redirect('/')
 
 if __name__ == '__main__':
     app.run(debug=True)
