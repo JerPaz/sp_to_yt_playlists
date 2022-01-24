@@ -6,12 +6,11 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 
-def main(youtube_obj):
-    in_single_spotify_playlist = spotify_script.spot_playlist_tracks('K-Music Test', 
-        spot_all_playlists_name_tracks_dict, 5) #len(spot_all_playlists_name_tracks_dict['K-Music']))
-
-    youtube = youtube_obj
-
+def main(youtube, in_playlist, in_num_songs):
+    print('Playlist selected: {}'.format(in_playlist))
+    print('Number of songs: {}'.format(in_num_songs))
+    in_single_spotify_playlist = spotify_script.spot_playlist_tracks(in_playlist, 
+        spot_all_playlists_name_tracks_dict, in_num_songs)
     spotify_playlists_dict = {}
     spotify_playlists_dict[in_single_spotify_playlist['playlist_title']] = in_single_spotify_playlist
     print(in_single_spotify_playlist)
@@ -60,4 +59,7 @@ def login_authenticate():
 
 if __name__ == '__main__':
     spot_all_playlists_name_tracks_dict = spotify_script.main()
-    main(login_authenticate())
+    playlist_name = input('Enter the playlist name: ') or 'K-Music'
+    num_songs = int(input('Enter number of songs you want inserted: ') 
+        or len(spot_all_playlists_name_tracks_dict[playlist_name]))
+    main(login_authenticate(), playlist_name, num_songs)
