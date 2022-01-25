@@ -1,3 +1,4 @@
+from unicodedata import category
 import config
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -33,7 +34,8 @@ def main():
             song_id = curr_playlist_tracks[i]['track']['name']
             artist = curr_playlist_tracks[i]['track']['artists'][0]['name']
             artist_id = curr_playlist_tracks[i]['track']['artists'][0]['uri']
-            all_playlists_name_tracks_dict[key].append([song, artist])
+            album = curr_playlist_tracks[i]['track']['album']['name']
+            all_playlists_name_tracks_dict[key].append([song, artist, album])
     return all_playlists_name_tracks_dict
 
 # Only for single playlist
@@ -51,11 +53,19 @@ def spot_playlist_tracks(spotify_playlist_name, in_all_playlists_name_tracks_dic
         except Exception as e:
             print("CANNOT FIND PLAYLIST // Exception e: {}".format(e))
         artist = spot_all_playlists_name_tracks_dict[spotify_playlist_name][index][1]
-        s = Search('{} {}'.format(song, artist))
+        album = spot_all_playlists_name_tracks_dict[spotify_playlist_name][index][2]
+        ost_key_words = ['OST', 'Original TV Soundtrack', 'Original Television Soundtrack']
+        if any(x in album for x in ost_key_words):
+            s = Search('{} {} MV'.format(song, artist))
+        else:
+            s = Search('{} {}'.format(song, artist))
         first_result = s.results[0]
+        if 'lyrics' in first_result.title.lower():
+            first_result = s.results[1]
         yt_video_url = first_result.watch_url
         video_id = yt_video_url[yt_video_url.find('v=')+2:]
-        print("Song Num/Loc: {}, Video ID: {}, YT URL: {}".format(index, video_id, yt_video_url))
+        print("Song Num/Loc: {}, Video ID: {}, YT URL: {}".format(
+            index, video_id, yt_video_url))
         single_playlist_dict['items'].append({'song': song, 
                                     'artist': artist,
                                     'yt_video_url': yt_video_url,
