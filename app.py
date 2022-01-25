@@ -8,7 +8,6 @@ from googleapiclient.discovery import build
 
 def main(youtube, in_playlist, in_num_songs):
     print('Playlist selected: {}'.format(in_playlist))
-    print('Number of songs: {}'.format(in_num_songs))
     in_single_spotify_playlist = spotify_script.spot_playlist_tracks(in_playlist, 
         spot_all_playlists_name_tracks_dict, in_num_songs)
     spotify_playlists_dict = {}
