@@ -1,6 +1,8 @@
 import os
 import config
 import requests
+import spotify_script
+import yt_script
 from os import abort
 from flask import Flask, session, render_template, redirect, request, flash
 from google.oauth2 import id_token
@@ -19,6 +21,19 @@ flow = InstalledAppFlow.from_client_secrets_file(
             redirect_uri="http://127.0.0.1:5000/callback"
         )
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+
+def create_yt_playlist(youtube, in_playlist, in_num_songs):
+    print('Playlist selected: {}'.format(in_playlist))
+    spot_all_playlists_name_tracks_dict = spotify_script.main()
+    in_single_spotify_playlist = spotify_script.spot_playlist_tracks(in_playlist, 
+        spot_all_playlists_name_tracks_dict, in_num_songs)
+    spotify_playlists_dict = {}
+    spotify_playlists_dict[in_single_spotify_playlist['playlist_title']] = in_single_spotify_playlist
+    print(in_single_spotify_playlist)
+
+    yt_existing_playlists = yt_script.get_existing_playlists(spotify_playlists_dict, youtube)
+    yt_playlist = yt_script.create_playlist(in_single_spotify_playlist, yt_existing_playlists, youtube)
+    yt_script.insert_tracks(yt_playlist, youtube)
 
 @app.route("/")
 def home():
@@ -51,15 +66,20 @@ def protect_user_page(function):
             return function()
     return wrapper
 
-@app.route("/user")
+@app.route("/user", methods=['GET', 'POST'])
 @protect_user_page
 def user_area():
+    if request.method == 'POST':
+        # TODO add logic to check for valid playlist and song
+        # TODO make user page look nicer after adding functionality
+        session["playlist_name"] = request.form['playlist_name']
+        session["num_songs"] = int(request.form['num_songs'])
+        return redirect("/build_yt")
     return render_template('/user.html', google_id=session['google_id'])
 
 @app.route("/build_yt")
 def build_yt():
-    youtube = build("youtube", "v3", credentials=flow.credentials)
-    print(youtube)
+    # TODO used passed in playlist and num songs to create a build object
     return "<h1>Built YOUTUBE successfully :)</h1>"
 
 @app.route("/logout")

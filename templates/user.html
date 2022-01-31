@@ -1,4 +1,9 @@
 <html>
     <h1>Welcome User: {{ google_id }}</h1>
-    <a class=button" href="/build_yt">Build YT</a>
+    <form action="" method="post">
+        <p><label>Playlist Name:</label><input type=text name=playlist_name>
+        <p><label>Number of Songs:</label><input type=text name=num_songs>
+        <p><input type=submit value="Build YT">
+    </form>
+    <p><button><a href="{{ url_for('logout')}}">Lougout</a></button></p>
 </html>
